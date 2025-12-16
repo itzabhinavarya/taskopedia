@@ -56,6 +56,8 @@ LOGGER_URL=http://localhost:4001
 NODE_ENV=development
 ```
 
+**Important:** Make sure `API_URL` is set to `http://localhost:4000` (API service port), not `http://localhost:3000` (Gateway port).
+
 #### Database Setup
 
 ```bash
