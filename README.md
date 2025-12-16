@@ -139,8 +139,26 @@ docker-compose logs -f api
 # Restart service
 docker-compose restart api
 
-# Access API container
+# Access container in interactive mode
 docker-compose exec api sh
+# Or using container name directly
+docker exec -it taskopedia-api /bin/sh
+docker exec -it taskopedia-gateway /bin/sh
+docker exec -it taskopedia-logger /bin/sh
+docker exec -it taskopedia-mysql /bin/bash
+
+# Access MySQL database and view records
+# Note: docker-compose commands must be run from project root directory
+docker-compose exec mysql mysql -u taskopedia -ptaskopedia123 taskopedia
+# Or using container name directly (works from any directory)
+docker exec -it taskopedia-mysql mysql -u taskopedia -ptaskopedia123 taskopedia
+
+# Once inside MySQL, you can run:
+# SHOW TABLES;
+# SELECT * FROM User;
+# SELECT * FROM Project;
+# SELECT * FROM Task;
+# EXIT;
 ```
 
 #### Access Services
