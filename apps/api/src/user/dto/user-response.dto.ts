@@ -38,7 +38,7 @@ export class UserResponseDto {
   @Exclude()
   password: string;
 
-  @Exclude()
+  @Expose()
   otp: string;
 
   @Exclude()
