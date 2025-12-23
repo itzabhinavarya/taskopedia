@@ -31,6 +31,7 @@ model User {
 
   projects        Project[]
   tasks           Task[]
+  logs            Log[]
 }
 
 model Project {
@@ -65,4 +66,26 @@ model Task {
 
   user            User        @relation(fields: [userId], references: [id])
   project         Project     @relation(fields: [projectId], references:[id])
+}
+
+model Log {
+  id              Int         @id @default(autoincrement())
+  userId          Int?
+  level           String      // info, error, warn, debug, etc.
+  message         String      @db.Text
+  status          String      @default("active") // active, archived, deleted
+  metadata        Json?       // Additional metadata as JSON
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime?   @updatedAt
+
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([level])
+  @@index([status])
+  @@index([userId, level])
+  @@index([userId, status])
+  @@index([level, status])
+  @@index([userId, createdAt])
+  @@index([createdAt(sort: Desc)])
 }

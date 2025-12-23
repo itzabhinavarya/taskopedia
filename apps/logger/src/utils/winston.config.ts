@@ -1,8 +1,5 @@
 import { createLogger, format, transports } from 'winston';
-import * as path from 'path';
 import WinstonCloudWatch from 'winston-cloudwatch';
-
-const logDir = path.join(process.cwd(), 'logs');
 
 // Get CloudWatch configuration from environment
 const enableCloudWatch = process.env.ENABLE_CLOUDWATCH === 'true';
@@ -11,8 +8,6 @@ const localstackEndpoint = process.env.LOCALSTACK_ENDPOINT || 'http://localstack
 
 // Base transports (always enabled)
 const baseTransports: any[] = [
-    new transports.File({ filename: path.join(logDir, 'error.log'), level: 'error' }),
-    new transports.File({ filename: path.join(logDir, 'combined.log') }),
     new transports.Console(),
 ];
 

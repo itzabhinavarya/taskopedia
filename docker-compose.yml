@@ -94,6 +94,7 @@ services:
       - NODE_ENV=production
       - GATEWAY_PORT=${GATEWAY_PORT:-3000}
       - API_URL=http://api:${API_PORT:-4000}
+      - LOGGER_URL=http://logger:${LOGGER_PORT:-4001}
     ports:
       - "${GATEWAY_PORT:-3000}:3000"
     depends_on:
@@ -119,6 +120,7 @@ services:
     environment:
       - NODE_ENV=production
       - LOGGER_PORT=${LOGGER_PORT:-4001}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-taskopedia}:${POSTGRES_PASSWORD:-taskopedia123}@postgres:5432/${POSTGRES_DB:-taskopedia}
     # Logger port not exposed - only accessible from internal network
     # ports:
     #   - "${LOGGER_PORT:-4001}:4001"
