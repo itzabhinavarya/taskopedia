@@ -2,9 +2,16 @@
 set -e
 
 echo "Waiting for database to be ready..."
-# Wait for MySQL to be ready
-until nc -z mysql 3306; do
-  echo "Waiting for MySQL..."
+
+# Wait for MySQL to be ready (commented - using PostgreSQL now)
+# until nc -z mysql 3306; do
+#   echo "Waiting for MySQL..."
+#   sleep 2
+# done
+
+# Wait for PostgreSQL to be ready
+until nc -z postgres 5432; do
+  echo "Waiting for PostgreSQL..."
   sleep 2
 done
 

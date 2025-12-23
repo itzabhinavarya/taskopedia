@@ -10,7 +10,7 @@ This monorepo contains three microservices:
 
 - **API Service** - Core business logic with Prisma ORM and database management (internal only, not directly accessible)
 - **Gateway Service** - API Gateway with request routing and proxy middleware (main entry point on port 3000)
-- **Logger Service** - Centralized logging service using Winston
+- **Logger Service** - Centralized logging service using Winston with PostgreSQL storage
 
 **Request Flow:**
 ```
@@ -28,7 +28,7 @@ All API requests must go through Gateway at `http://localhost:3000/api/*`. The A
 
 - Node.js >= 18.0.0
 - pnpm >= 10.0.0
-- MySQL database
+- PostgreSQL or MySQL database
 
 #### Installation
 
@@ -44,6 +44,20 @@ pnpm run db:generate
 
 Create `.env` file in root directory:
 
+**For PostgreSQL:**
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/taskopedia
+JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
+JWT_EXPIRES_IN=7d
+API_PORT=4000
+GATEWAY_PORT=3000
+LOGGER_PORT=4001
+API_URL=http://localhost:4000
+LOGGER_URL=http://localhost:4001
+NODE_ENV=development
+```
+
+**For MySQL:**
 ```env
 DATABASE_URL=mysql://user:password@localhost:3306/taskopedia
 JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
@@ -56,7 +70,9 @@ LOGGER_URL=http://localhost:4001
 NODE_ENV=development
 ```
 
-**Important:** Make sure `API_URL` is set to `http://localhost:4000` (API service port), not `http://localhost:3000` (Gateway port).
+**Important:** 
+- Make sure `API_URL` is set to `http://localhost:4000` (API service port), not `http://localhost:3000` (Gateway port).
+- Update `schema.prisma` datasource provider to match your database (`postgresql` or `mysql`).
 
 #### Database Setup
 
@@ -100,6 +116,27 @@ pnpm run start:all
 
 Create `.env` file in root directory:
 
+**For PostgreSQL (Default):**
+```env
+POSTGRES_USER=taskopedia
+POSTGRES_PASSWORD=taskopedia123
+POSTGRES_DB=taskopedia
+POSTGRES_PORT=5432
+
+API_PORT=4000
+GATEWAY_PORT=3000
+LOGGER_PORT=4001
+
+API_URL=http://api:4000
+LOGGER_URL=http://logger:4001
+
+JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
+JWT_EXPIRES_IN=7d
+
+NODE_ENV=production
+```
+
+**For MySQL (Alternative):**
 ```env
 MYSQL_ROOT_PASSWORD=rootpassword
 MYSQL_DATABASE=taskopedia
@@ -112,7 +149,6 @@ GATEWAY_PORT=3000
 LOGGER_PORT=4001
 
 API_URL=http://api:4000
-GATEWAY_URL=http://gateway:3000
 LOGGER_URL=http://logger:4001
 
 JWT_SECRET=your-secret-key-change-in-production-make-it-long-and-random
@@ -120,6 +156,10 @@ JWT_EXPIRES_IN=7d
 
 NODE_ENV=production
 ```
+
+**Note:** 
+- Default setup uses PostgreSQL. To use MySQL, uncomment MySQL service and comment PostgreSQL in `docker-compose.yml`.
+- Update `apps/api/prisma/schema.prisma` datasource provider accordingly (`postgresql` or `mysql`).
 
 #### Quick Start
 
@@ -150,43 +190,38 @@ docker-compose logs -f api
 docker-compose restart api
 
 # Access container in interactive mode
-docker-compose exec api sh
-# Or using container name directly
 docker exec -it taskopedia-api /bin/sh
 docker exec -it taskopedia-gateway /bin/sh
 docker exec -it taskopedia-logger /bin/sh
-docker exec -it taskopedia-mysql /bin/bash
 
-# Access MySQL database and view records
-# Note: docker-compose commands must be run from project root directory
-docker-compose exec mysql mysql -u taskopedia -ptaskopedia123 taskopedia
-# Or using container name directly (works from any directory)
-docker exec -it taskopedia-mysql mysql -u taskopedia -ptaskopedia123 taskopedia
-
-# Once inside MySQL, you can run:
-# SHOW TABLES;
-# SELECT * FROM User;
-# SELECT * FROM Project;
-# SELECT * FROM Task;
-# EXIT;
+# Access PostgreSQL database
+docker exec -it taskopedia-postgres psql -U taskopedia -d taskopedia
+# Once inside PostgreSQL, you can run:
+# \dt (list tables)
+# SELECT * FROM "User";
+# SELECT * FROM "Project";
+# SELECT * FROM "Task";
+# SELECT * FROM "Log";
+# \q (quit)
 ```
 
 #### Access Services
 
 - **Gateway:** http://localhost:3000 (All API requests go through Gateway)
 - **API Endpoints:** http://localhost:3000/api/* (e.g., `/api/user/signup`, `/api/project`)
+- **Logger Endpoints:** http://localhost:3000/api/logs (e.g., `/api/logs`, `/api/logs/user/1`)
 
 **Internal Services (not exposed to host):**
 - **API Service:** Port 4000 (internal only, accessible via Gateway)
-- **Logger Service:** Port 4001 (internal only, accessible from API service)
-- **MySQL Database:** Port 3306 (internal only, accessible from API service)
+- **Logger Service:** Port 4001 (internal only, accessible via Gateway)
+- **PostgreSQL Database:** Port 5432 (internal only, accessible from API/Logger services)
 
 **Important:** 
 - Only Gateway (port 3000) is exposed to the host for security
-- All other services (API, Logger, MySQL) are internal and only accessible within Docker network
-- Gateway routes `/api/*` requests to the API service internally
+- All other services (API, Logger, Database) are internal and only accessible within Docker network
+- Gateway routes `/api/*` to API service and `/api/logs/*` to Logger service
 - Database migrations run automatically on API container startup
-- To access MySQL, use: `docker exec -it taskopedia-mysql mysql -u taskopedia -ptaskopedia123 taskopedia`
+- To access PostgreSQL: `docker exec -it taskopedia-postgres psql -U taskopedia -d taskopedia`
 
 ---
 
@@ -225,7 +260,20 @@ JWT-based authentication system with the following endpoints:
 
 **Note:** All API endpoints must be accessed through Gateway at `http://localhost:3000/api/*`. Direct access to API service (port 4000) is disabled for security.
 
-## 🗄️ Database Commands
+## 🗄️ Database Configuration
+
+### Prisma Schema Provider
+
+Update `apps/api/prisma/schema.prisma` datasource provider:
+
+```prisma
+datasource db {
+  provider = "postgresql"  // or "mysql"
+  url      = env("DATABASE_URL")
+}
+```
+
+### Database Commands
 
 ```bash
 pnpm run db:migrate   # Run migrations
@@ -247,9 +295,9 @@ pnpm run format       # Format code
 
 - **Framework:** NestJS
 - **Language:** TypeScript
-- **Database:** Prisma ORM (MySQL)
+- **Database:** Prisma ORM (PostgreSQL/MySQL)
 - **Authentication:** JWT (jsonwebtoken)
-- **Logging:** Winston
+- **Logging:** Winston with PostgreSQL storage
 - **Build Tool:** Turborepo
 - **Package Manager:** pnpm
 
