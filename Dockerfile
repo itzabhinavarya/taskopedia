@@ -75,7 +75,8 @@ COPY --from=build /app/node_modules/.pnpm ./node_modules/.pnpm
 
 # Copy entrypoint script for API service (auto-migration)
 COPY apps/api/docker-entrypoint.sh ./apps/api/docker-entrypoint.sh
-RUN chmod +x ./apps/api/docker-entrypoint.sh
+# Fix line endings (CRLF to LF) and make executable
+RUN sed -i 's/\r$//' ./apps/api/docker-entrypoint.sh && chmod +x ./apps/api/docker-entrypoint.sh
 
 # Install netcat for database connection check
 RUN apk add --no-cache netcat-openbsd

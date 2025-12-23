@@ -25,4 +25,3 @@ pnpm prisma migrate deploy --schema=prisma/schema.prisma || pnpm prisma db push 
 echo "Starting API server..."
 # Start the application
 exec node dist/src/main.js
-
