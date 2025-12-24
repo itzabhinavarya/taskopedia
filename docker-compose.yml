@@ -121,6 +121,13 @@ services:
       - NODE_ENV=production
       - LOGGER_PORT=${LOGGER_PORT:-4001}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-taskopedia}:${POSTGRES_PASSWORD:-taskopedia123}@postgres:5432/${POSTGRES_DB:-taskopedia}
+      # CloudWatch Configuration
+      - ENABLE_CLOUDWATCH=${ENABLE_CLOUDWATCH:-true}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-eu-west-2}
+      - LOG_STREAM_NAME=${LOG_STREAM_NAME:-logger-production}
+      - LOG_GROUP_NAME=${LOG_GROUP_NAME:-/microservices/logger}
     # Logger port not exposed - only accessible from internal network
     # ports:
     #   - "${LOGGER_PORT:-4001}:4001"

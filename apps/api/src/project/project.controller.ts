@@ -18,7 +18,7 @@ export class ProjectController {
     @UseGuards(AuthGuard)
     @Get('')
     async allProject(@GetUser() user: JwtPayload, @Query() query?: QueryProjectDto): Promise<ApiResponse<ProjectResponseDto[]>> {
-        this.loggerClient.log('Fetching all projects', 'info', { userId: user.userId });
+        this.loggerClient.log('Fetching all projects', 'info');
         const { data, meta } = await this.projectService.getAll(query);
         this.loggerClient.log(`Successfully fetched ${data.length} projects`, 'info');
         const result = responseInstance(ProjectResponseDto, data) as ProjectResponseDto[];
@@ -34,7 +34,7 @@ export class ProjectController {
     @UseGuards(AuthGuard)
     @Get(':id')
     async getProject(@GetUser() user: JwtPayload, @Param('id', ParseIntPipe) id: number): Promise<ApiResponse<ProjectResponseDto>> {
-        this.loggerClient.log(`Fetching project with id: ${id}`, 'info', { userId: user.userId });
+        this.loggerClient.log(`Fetching project with id: ${id}`, 'info');
         const data = await this.projectService.get(id);
         this.loggerClient.log(`Successfully fetched project with id: ${id}`, 'info');
         const result = responseInstance(ProjectResponseDto, data) as ProjectResponseDto;
@@ -49,7 +49,7 @@ export class ProjectController {
     @UseGuards(AuthGuard)
     @Post('')
     async createProject(@GetUser() user: JwtPayload, @Body() data: CreateProjectDto): Promise<ApiResponse<ProjectResponseDto>> {
-        this.loggerClient.log('Creating a new project', 'info', { userId: user.userId });
+        this.loggerClient.log('Creating a new project', 'info');
         const projectData = { ...data, userId: user.userId };
         const res = await this.projectService.create(projectData);
         this.loggerClient.log(`Project created with id: ${res.id}`, 'info');
@@ -65,7 +65,7 @@ export class ProjectController {
     @UseGuards(AuthGuard)
     @Put(':id')
     async updateProject(@GetUser() user: JwtPayload, @Param('id', ParseIntPipe) id: number, @Body() data: UpdateProjectDto): Promise<ApiResponse<ProjectResponseDto>> {
-        this.loggerClient.log(`Updating project with id: ${id}`, 'info', { userId: user.userId });
+        this.loggerClient.log(`Updating project with id: ${id}`, 'info');
         const res = await this.projectService.update(id, data);
         this.loggerClient.log(`Successfully updated project with id: ${id}`, 'info');
         const result = responseInstance(ProjectResponseDto, res) as ProjectResponseDto;
@@ -80,7 +80,7 @@ export class ProjectController {
     @UseGuards(AuthGuard)
     @Patch('/archive/:id')
     async archiveProject(@GetUser() user: JwtPayload, @Param('id', ParseIntPipe) id: number): Promise<ApiResponse<ProjectResponseDto>> {
-        this.loggerClient.log(`Archiving project with id: ${id}`, 'info', { userId: user.userId });
+        this.loggerClient.log(`Archiving project with id: ${id}`, 'info');
         const res = await this.projectService.archive(id);
         this.loggerClient.log(`Successfully archived project with id: ${id}`, 'info');
         const result = responseInstance(ProjectResponseDto, res) as ProjectResponseDto;
@@ -95,7 +95,7 @@ export class ProjectController {
     @UseGuards(AuthGuard)
     @Patch(':id')
     async deleteProject(@GetUser() user: JwtPayload, @Param('id', ParseIntPipe) id: number): Promise<ApiResponse<ProjectResponseDto>> {
-        this.loggerClient.log(`Deleting project with id: ${id}`, 'info', { userId: user.userId });
+        this.loggerClient.log(`Deleting project with id: ${id}`, 'info');
         const res = await this.projectService.delete(id);
         this.loggerClient.log(`Successfully deleted project with id: ${id}`, 'info');
         const result = responseInstance(ProjectResponseDto, res) as ProjectResponseDto;

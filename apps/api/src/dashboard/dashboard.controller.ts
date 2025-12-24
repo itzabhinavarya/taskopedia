@@ -17,7 +17,7 @@ export class DashboardController {
     @UseGuards(AuthGuard)
     @Get('/stats')
     async getAllStats(@GetUser() user: JwtPayload) {
-        this.loggerClient.log('Fetching all stats for dashboard', 'info', { userId: user.userId });
+        this.loggerClient.log('Fetching all stats for dashboard', 'info');
         const data = await this.service.getStats()
         this.loggerClient.log('Fetched all stats for dashboard', 'info');
         return response({
