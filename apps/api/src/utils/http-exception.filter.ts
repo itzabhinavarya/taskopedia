@@ -15,7 +15,7 @@ import { LoggerClient } from 'src/infrastructure/logger.client';
 export class AllExceptionsFilter implements ExceptionFilter {
     private readonly logger = new Logger(AllExceptionsFilter.name);
 
-    private readonly loggerClient = new LoggerClient(); // manually create
+    constructor(private readonly loggerClient: LoggerClient) {}
 
     catch(exception: unknown, host: ArgumentsHost) {
         const ctx = host.switchToHttp();

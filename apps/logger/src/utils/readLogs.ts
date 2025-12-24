@@ -7,17 +7,13 @@ const getCloudWatchClient = () => {
     }
 
     const config: any = {
-        region: process.env.AWS_REGION || 'ap-south-1',
+        region: process.env.AWS_REGION || 'eu-west-2',
+        // AWS credentials for CloudWatch (works for both local and Docker)
         credentials: {
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         },
     };
-
-    // Add LocalStack endpoint if enabled
-    if (process.env.LOCALSTACK_ENABLED === 'true') {
-        config.endpoint = process.env.LOCALSTACK_ENDPOINT || 'http://localstack:4566';
-    }
 
     return new CloudWatchLogsClient(config);
 };
@@ -33,7 +29,7 @@ export async function getLogs() {
     try {
         // First, get the log streams
         const streams = await client.send(new DescribeLogStreamsCommand({
-            logGroupName: '/microservices/logger',
+            logGroupName: process.env.LOG_GROUP_NAME || '/microservices/logger',
             orderBy: 'LastEventTime',
             descending: true,
         }));
@@ -43,14 +39,19 @@ export async function getLogs() {
             const streamName = streams.logStreams[0].logStreamName;
 
             const logs = await client.send(new GetLogEventsCommand({
-                logGroupName: '/microservices/logger',
+                logGroupName: process.env.LOG_GROUP_NAME || '/microservices/logger',
                 logStreamName: streamName,
+                startFromHead: false, // Start from the end (newest logs)
             }));
 
-            console.log('Logs:', JSON.stringify(logs.events, null, 2));
+            // Reverse the events array to show latest logs first
+            const reversedEvents = logs.events ? [...logs.events].reverse() : [];
+            return reversedEvents;
         }
+        return [];
     } catch (error) {
         console.error('Error fetching logs from CloudWatch:', error);
         console.log('Falling back to local log files.');
+        return [];
     }
 }
