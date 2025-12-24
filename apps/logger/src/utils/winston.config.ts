@@ -3,8 +3,6 @@ import WinstonCloudWatch from 'winston-cloudwatch';
 
 // Get CloudWatch configuration from environment
 const enableCloudWatch = process.env.ENABLE_CLOUDWATCH === 'true';
-const localstackEnabled = process.env.LOCALSTACK_ENABLED === 'true';
-const localstackEndpoint = process.env.LOCALSTACK_ENDPOINT || 'http://localstack:4566';
 
 // Base transports (always enabled)
 const baseTransports: any[] = [
@@ -16,24 +14,17 @@ if (enableCloudWatch) {
     const cloudWatchConfig: any = {
         logGroupName: '/microservices/logger',
         logStreamName: process.env.LOG_STREAM_NAME || `logger-${process.env.NODE_ENV || 'dev'}`,
-        awsRegion: process.env.AWS_REGION || 'ap-south-1',
+        awsRegion: process.env.AWS_REGION,
         jsonMessage: true,
-        awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
-        awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
+        // AWS credentials for local execution
+        awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
-
-    // Add LocalStack endpoint if enabled
-    if (localstackEnabled) {
-        cloudWatchConfig.awsOptions = {
-            endpoint: localstackEndpoint,
-            credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
-            }
-        };
-    }
-
-    baseTransports.push(new WinstonCloudWatch(cloudWatchConfig));
+    const cloudWatchTransport = new WinstonCloudWatch(cloudWatchConfig);
+    cloudWatchTransport.on('error', (err) => {
+        console.error('CloudWatch transport error:', err);
+    });
+    baseTransports.push(cloudWatchTransport);
 }
 
 export const logger = createLogger({

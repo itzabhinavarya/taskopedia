@@ -8,9 +8,10 @@ const getCloudWatchClient = () => {
 
     const config: any = {
         region: process.env.AWS_REGION || 'ap-south-1',
+        // AWS credentials for local execution (without Docker/LocalStack)
         credentials: {
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'test',
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'test',
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         },
     };
 
@@ -45,12 +46,18 @@ export async function getLogs() {
             const logs = await client.send(new GetLogEventsCommand({
                 logGroupName: '/microservices/logger',
                 logStreamName: streamName,
+                startFromHead: false, // Start from the end (newest logs)
             }));
 
-            console.log('Logs:', JSON.stringify(logs.events, null, 2));
+            // Reverse the events array to show latest logs first
+            const reversedEvents = logs.events ? [...logs.events].reverse() : [];
+            console.log('Logs:', JSON.stringify(reversedEvents, null, 2));
+            return reversedEvents;
         }
+        return [];
     } catch (error) {
         console.error('Error fetching logs from CloudWatch:', error);
         console.log('Falling back to local log files.');
+        return [];
     }
 }
